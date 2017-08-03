@@ -31,10 +31,8 @@ app.get("/urls/new", (req, res) => {
 app.post("/urls", (req, res) => {
   //first take the user input (long URL) and run function to convert is to a key
   let shortURL = generateRandomString(req.body.longURL);
-
   //assign that key (shortURL) to the longURL and push it into urlDatabase
   urlDatabase[shortURL] = req.body.longURL;
-
   //redirect client to urls which will display the short and long URLS
   res.redirect("/urls");
 });
