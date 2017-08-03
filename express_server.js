@@ -9,9 +9,17 @@ var urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
-app.get("/urls", (req, res)=>{
+//creating route for rendering the list or table of the URLs and their shortened forms
+
+app.get("/urls", (req, res) => {
   let templateVars = { urls : urlDatabase };
   res.render("urls_index", templateVars);
+})
+
+//creating route for rendering the full URL and its shortened form
+app.get("/urls/:id", (req, res) => {
+  let templateVars = { shortURL : req.params.id, longURL : urlDatabase[req.params.id]};
+  res.render("urls_show", templateVars);
 })
 
 app.listen(PORT, () => {
