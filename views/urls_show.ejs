@@ -6,9 +6,13 @@
 </head>
 
 <body>
+     <% include partials/_header %>
+
     <!-- Fill out the urls_show.ejs template to display the following:
       The full URL and its shortened form. -->
-    <h3><%=longURL%> : <%=shortURL%></h3>
+    <ul>
+      <p><%=longURL%> : <%=shortURL%></p>
+    </ul>
 
 </body>
 </html>
