@@ -28,6 +28,7 @@ app.get("/urls/new", (req, res) => {
 
 //creating route for rendering the full URL and its shortened form
 app.get("/urls/:id", (req, res) => {
+
   let templateVars = { shortURL : req.params.id, longURL : urlDatabase[req.params.id]};
   res.render("urls_show", templateVars);
 })
@@ -40,7 +41,7 @@ app.post("/urls", (req, res) => {
   //assign that key (shortURL) to the longURL and push it into urlDatabase
   urlDatabase[shortURL] = req.body.longURL;
   //redirect client to urls which will display the short and long URLS
-  res.redirect("/urls");
+  res.redirect(`/urls/${shortURL}`);
 });
 
 //The next part of the specification is that a URL like http://localhost:8080/u/b2xVn2
