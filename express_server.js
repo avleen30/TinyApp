@@ -21,12 +21,6 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 })
 
-//creating route for rendering the full URL and its shortened form
-app.get("/urls/:id", (req, res) => {
-  let templateVars = { shortURL : req.params.id, longURL : urlDatabase[req.params.id]};
-  res.render("urls_show", templateVars);
-})
-
 //We will use the urls_new.ejs template to render the endpoint, /urls/new.
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
@@ -35,10 +29,31 @@ app.get("/urls/new", (req, res) => {
 //the urls_new.ejs template that we created uses method="post".
 //This corresponds with the app.post(...) on the server-side code!
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // debug statement to see POST parameters
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  //first take the user input (long URL) and run function to convert is to a key
+  let shortURL = generateRandomString(req.body.longURL);
+
+  //assign that key (shortURL) to the longURL and push it into urlDatabase
+  urlDatabase[shortURL] = req.body.longURL;
+
+  //redirect client to urls which will display the short and long URLS
+  res.redirect("/urls");
 });
+
+//creating route for rendering the full URL and its shortened form
+app.get("/urls/:id", (req, res) => {
+  let templateVars = { shortURL : req.params.id, longURL : urlDatabase[req.params.id]};
+  res.render("urls_show", templateVars);
+})
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
+
+//function for generating a random 6 string
+function generateRandomString() {
+  var text = "";
+  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+   for (var i = 0; i < 6; i++)
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
+   return text;
+}
