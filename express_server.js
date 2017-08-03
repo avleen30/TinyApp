@@ -26,6 +26,12 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
+//creating route for rendering the full URL and its shortened form
+app.get("/urls/:id", (req, res) => {
+  let templateVars = { shortURL : req.params.id, longURL : urlDatabase[req.params.id]};
+  res.render("urls_show", templateVars);
+})
+
 //the urls_new.ejs template that we created uses method="post".
 //This corresponds with the app.post(...) on the server-side code!
 app.post("/urls", (req, res) => {
@@ -37,11 +43,13 @@ app.post("/urls", (req, res) => {
   res.redirect("/urls");
 });
 
-//creating route for rendering the full URL and its shortened form
-app.get("/urls/:id", (req, res) => {
-  let templateVars = { shortURL : req.params.id, longURL : urlDatabase[req.params.id]};
-  res.render("urls_show", templateVars);
-})
+//The next part of the specification is that a URL like http://localhost:8080/u/b2xVn2
+//would redirect to its corresponding longURL (www.lighthouselabs.ca) according to our urlDatabase.
+// add the following route to handle shortURL requests:
+app.get("/u/:shortURL", (req, res) => {
+  let longURL = urlDatabase[req.params.shortURL];
+  res.redirect(longURL);
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
