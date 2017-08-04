@@ -35,20 +35,20 @@ const users = {
 
 //creating route for rendering the list or table of the URLs and their shortened forms
 app.get("/urls", (req, res) => {
-  let templateVars = { urls : urlDatabase , username: req.cookies["username"] };
+  let templateVars = { urls : urlDatabase , username: req.cookies["user_id"] };
   res.render("urls_index", templateVars);
 });
 
 //We will use the urls_new.ejs template to render the endpoint, /urls/new.
 app.get("/urls/new", (req, res) => {
-  let templateVars = {username: req.cookies["username"]};
+  let templateVars = {username: req.cookies["user_id"]};
   res.render("urls_new", templateVars);
 });
 
 //creating route for rendering the full URL and its shortened form
 app.get("/urls/:id", (req, res) => {
 
-  let templateVars = { shortURL : req.params.id, longURL : urlDatabase[req.params.id], username: req.cookies["username"]};
+  let templateVars = { shortURL : req.params.id, longURL : urlDatabase[req.params.id], username: req.cookies["user_id"]};
 
   res.render("urls_show", templateVars);
 });
@@ -75,21 +75,22 @@ app.get("/u/:shortURL", (req, res) => {
 //Implement the /logout endpoint so that
 //it clears the username cookie and redirects the user back to the /urls page
 app.post("/logout", (req, res) => {
-  res.clearCookie("username");
+  res.clearCookie("user_id");
   res.redirect("urls")
 });
 
 //In order to handle the form submission, add an endpoint to handle a POST to /login in your Express server.
 //Use the endpoint to set the cookie parameter called username to the value submitted in the request body via the form
 app.post("/login", (req, res) => {
-  let username = req.body.username
-    if(!username){
-      res.redirect("/urls")
+  let email = req.body.email
+  let password = req.body.password;
+    for(var key in users){
+      if(email === users[key].email && password === users[key].password){
+        res.cookie("user_id", users[key].id);
+        res.redirect("/urls");
+      }
     }
-    else{
-      res.cookie("username", username); //res.cookie(name, value [, options])
-      res.redirect("/urls");
-    }
+    res.redirect("/urls");
 });
 
 // /Create a GET /register endpoint,
@@ -102,8 +103,6 @@ app.post("/register", (req, res) => {
 
     var key = generateRandomString();
     let userInput = { id : key, email : req.body.email , password : req.body.password};
-    //pushing email and password into users database
-
 
     if (!userInput.email || !userInput.password){
       // return Error 400
@@ -117,6 +116,7 @@ app.post("/register", (req, res) => {
         return;
       }
     }
+    //pushing email and password into users database
     users[key]= userInput;
     //saving user_id as cookie
     res.cookie("user_id", userInput.id);

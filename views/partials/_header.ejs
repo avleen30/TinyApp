@@ -3,8 +3,10 @@
 <!-- Adding the Login Form -->
 <% if (!username) { %>
   <form method="POST" action="/login">
-    <input name="username" type="text" placeholder="enter your username" style="width: 280px">
+    <input name="email" type="text" placeholder="enter your email" style="width: 280px">
+    <input name="password" type="password" placeholder="enter your password" style="width: 280px">
     <input type="submit" value="submit">
+
   </form>
   <%  } else { %>
   <p>Hello, <%= username %></p>
