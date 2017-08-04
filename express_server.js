@@ -99,9 +99,24 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
+
     var key = generateRandomString();
     let userInput = { id : key, email : req.body.email , password : req.body.password};
     //pushing email and password into users database
+
+
+    if (!userInput.email || !userInput.password){
+      // return Error 400
+      res.status(400).send("Error, please register")
+        return;
+      }
+
+    for (let user in users) {
+      if (userInput.email === users[user]["email"]) {
+        res.status(400).send("Error - please use new email")
+        return;
+      }
+    }
     users[key]= userInput;
     //saving user_id as cookie
     res.cookie("user_id", userInput.id);
