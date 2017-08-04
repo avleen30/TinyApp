@@ -19,6 +19,20 @@ var urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+//used to store and access the users in the app.
+const users = {
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk"
+  }
+}
+
 //creating route for rendering the list or table of the URLs and their shortened forms
 app.get("/urls", (req, res) => {
   let templateVars = { urls : urlDatabase , username: req.cookies["username"] };
@@ -76,6 +90,22 @@ app.post("/login", (req, res) => {
       res.cookie("username", username); //res.cookie(name, value [, options])
       res.redirect("/urls");
     }
+});
+
+// /Create a GET /register endpoint,
+// which returns a page that includes a form with an email and password field.
+app.get("/register", (req, res) => {
+  res.render("urls_register");
+});
+
+app.post("/register", (req, res) => {
+    var key = generateRandomString();
+    let userInput = { id : key, email : req.body.email , password : req.body.password};
+    //pushing email and password into users database
+    users[key]= userInput;
+    //saving user_id as cookie
+    res.cookie("user_id", userInput.id);
+    res.redirect("/urls");
 });
 
 app.listen(PORT, () => {
