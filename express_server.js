@@ -52,6 +52,13 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
+//Implement the /logout endpoint so that
+//it clears the username cookie and redirects the user back to the /urls page
+app.post("/logout", (req, res) => {
+  res.clearCookie("username");
+  res.redirect("urls")
+})
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
