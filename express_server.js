@@ -35,20 +35,22 @@ const users = {
 
 //creating route for rendering the list or table of the URLs and their shortened forms
 app.get("/urls", (req, res) => {
-  let templateVars = { urls : urlDatabase , username: req.cookies["user_id"] };
+  var user = checkUSerCookie(req.cookies);
+  let templateVars = { urls : urlDatabase , user : user};
   res.render("urls_index", templateVars);
 });
 
 //We will use the urls_new.ejs template to render the endpoint, /urls/new.
 app.get("/urls/new", (req, res) => {
-  let templateVars = {username: req.cookies["user_id"]};
+  var user = checkUSerCookie(req.cookies);
+  let templateVars = {user : user};
   res.render("urls_new", templateVars);
 });
 
 //creating route for rendering the full URL and its shortened form
 app.get("/urls/:id", (req, res) => {
-
-  let templateVars = { shortURL : req.params.id, longURL : urlDatabase[req.params.id], username: req.cookies["user_id"]};
+  var user = checkUSerCookie(req.cookies);
+  let templateVars = { shortURL : req.params.id, longURL : urlDatabase[req.params.id], user : user};
 
   res.render("urls_show", templateVars);
 });
@@ -82,6 +84,7 @@ app.post("/logout", (req, res) => {
 //In order to handle the form submission, add an endpoint to handle a POST to /login in your Express server.
 //Use the endpoint to set the cookie parameter called username to the value submitted in the request body via the form
 app.post("/login", (req, res) => {
+  console.log('In the post login route')
   let email = req.body.email
   let password = req.body.password;
     for(var key in users){
@@ -90,7 +93,7 @@ app.post("/login", (req, res) => {
         res.redirect("/urls");
       }
     }
-    res.redirect("/urls");
+    res.redirect("/login");
 });
 
 // /Create a GET /register endpoint,
@@ -123,6 +126,16 @@ app.post("/register", (req, res) => {
     res.redirect("/urls");
 });
 
+//Create a GET /login endpoint, which returns a new login page (you'll have to create it).
+//Move the entire login form from the _header partial into the new login page, then modify the form
+//to ask for an email and password.
+app.get("/login", (req, res) => {
+  console.log('In the get login route')
+  var user = checkUSerCookie(req.cookies);
+  let templateVars = {user : user};
+  res.render("urls_login", templateVars);
+});
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
@@ -135,3 +148,13 @@ function generateRandomString() {
       text += possible.charAt(Math.floor(Math.random() * possible.length));
    return text;
 };
+
+function checkUSerCookie(cookie){
+  //check if cookie exists
+  if(cookie['user_id']) {
+    let user = users[cookie['user_id']];
+    return user;
+  } else {
+    return {};
+  }
+}
