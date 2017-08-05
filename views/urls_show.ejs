@@ -2,17 +2,22 @@
 <html lang="en">
 
 <head>
-  <title> Tiny App </title>
+  <meta charset="utf-8">
+  <title>tinyApp! Your ShortURL <%=shortURL%></title>
 </head>
 
 <body>
-     <% include partials/_header %>
-
+  <header>
+    <% include ./partials/_header%>
+  </header>
     <!-- Fill out the urls_show.ejs template to display the following:
       The full URL and its shortened form. -->
-    <ul>
-      <p><%=longURL%> : <%=shortURL%></p>
-    </ul>
-
+    <h3>Short URL: <b><%=shortURL%></b></h3>
+    <h3>Long URL: <b><a target="_blank" href="<%= longURL %>"><%= longURL %></b></a></h3>
+    <form method = "POST" action = '/urls/<%=shortURL%>'>
+    <input id="longURL" type="text" name="longURL" placeholder='<%=longURL%>' class="form-control">
+     <input type="submit" value="Update">
+     </form></br>
+    <a href='/urls'>Back to your URL's</a>
 </body>
 </html>

@@ -1,14 +1,24 @@
-<h1>Your Short URLs</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>tinyApp</title>
+</head>
+
+<body>
+  <h1>TinyApp</h1>
 
 <!-- Adding the Login Form -->
 <% if (!user) { %>
   <li><a href="http://localhost:8080/register">For new Users - Click here to Register</a></li>
-  <li><a href="http://localhost:8080/login">Click here to Login</a></li>
 
   </form>
   <%  } else { %>
   <p>Hello, <%= user.email %></p>
     <form method="POST" action="/logout">
     <input type="submit" value="logout">
-  </form>
   <% }; %>
+  </form>
+<body>
+
+

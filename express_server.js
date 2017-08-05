@@ -26,7 +26,7 @@ function generateRandomString() {
 };
 
 // check if logged-in user owns the shortURL
-function userOwns(db, user, shortURL) {
+function logIn(db, user, shortURL) {
   let result = false;
   for (let key in db) {
     if (db[user.id][shortURL]) {
@@ -51,110 +51,190 @@ app.get("/", (req, res) => {
   }
 });
 
-//creating route for rendering the list or table of the URLs and their shortened forms
+// GET the index page
 app.get("/urls", (req, res) => {
-  var user = checkUSerCookie(req.cookies);
-  let templateVars = { urls : urlDatabase , user : user};
+  const newUser = req.session.user;
+  if (!newUser) {
+    res.sendStatus(401);
+    return;
+  }
+  let templateVars = {
+    urls: urlDatabase[newUser.id],
+    user: newUser
+  };
   res.render("urls_index", templateVars);
 });
 
-//We will use the urls_new.ejs template to render the endpoint, /urls/new.
+// GET the new input page
 app.get("/urls/new", (req, res) => {
-  var user = checkUSerCookie(req.cookies);
-  let templateVars = {user : user};
+  const newUser = req.session.user;
+  if (!newUser) {
+    res.redirect('/login');
+    return;
+  }
+  let templateVars = {
+    user: newUser
+  };
   res.render("urls_new", templateVars);
 });
 
-//creating route for rendering the full URL and its shortened form
-app.get("/urls/:id", (req, res) => {
-  var user = checkUSerCookie(req.cookies);
-  let templateVars = { shortURL : req.params.id, longURL : urlDatabase[req.params.id], user : user};
+// GET the redirection towards the actual site
+app.get("/u/:shortURL", (req, res) => {
+  for (let userID in users) {
+    if (urlDatabase[userID][req.params.shortURL]) {
+      const longURL = urlDatabase[userID][req.params.shortURL];
+      res.redirect(longURL);
+      return;
+    }
+  }
+  res.sendStatus(404);
+  return;
+});
 
+// GET the info on each shortened url
+app.get("/urls/:id", (req, res) => {
+  const newUser = req.session.user;
+  if (!newUser) {
+    res.sendStatus(404);
+    return;
+  }
+  if (!urlDatabase[newUser.id][req.params.id]) {
+    res.sendStatus(404);
+    return;
+  }
+  if (!logIn(urlDatabase, newUser, req.params.id)) {
+    res.sendStatus(401);
+    return;
+  }
+  let templateVars = {
+    shortURL: req.params.id,
+    longURL: urlDatabase[newUser.id][req.params.id],
+    user: newUser
+  };
   res.render("urls_show", templateVars);
 });
 
-//the urls_new.ejs template that we created uses method="post".
-//This corresponds with the app.post(...) on the server-side code!
+// POST the newly generated short url
 app.post("/urls", (req, res) => {
-  //first take the user input (long URL) and run function to convert is to a key
-  let shortURL = generateRandomString(req.body.longURL);
-  //assign that key (shortURL) to the longURL and push it into urlDatabase
-  urlDatabase[shortURL] = req.body.longURL;
-  //redirect client to urls which will display the short and long URLS
-  res.redirect(`/urls/${shortURL}`);
+  const newUser = req.session.user;
+  console.log(newUser);
+  if (!newUser) {
+    res.sendStatus(401);
+    return;
+  }
+  if (!req.body.longURL){
+    res.sendStatus(400);
+    return;
+  }
+  const randomText = generateRandomString();
+  urlDatabase[newUser.id][randomText] = req.body.longURL;
+  console.log(urlDatabase);
+  res.redirect(`/urls/${randomText}`);
 });
 
-//The next part of the specification is that a URL like http://localhost:8080/u/b2xVn2
-//would redirect to its corresponding longURL (www.lighthouselabs.ca) according to our urlDatabase.
-// add the following route to handle shortURL requests:
-app.get("/u/:shortURL", (req, res) => {
-  let longURL = urlDatabase[req.params.shortURL];
-  res.redirect(longURL);
+// POST the updated short url
+app.post("/urls/:id", (req, res) => {
+  const newUser = req.session.user;
+  if (!req.body.longURL) {
+    res.sendStatus(400);
+  }
+  if (!newUser) {
+    res.sendStatus(401);
+    return;
+  }
+  if (!logIn(urlDatabase, newUser, req.params.id)) {
+    res.sendStatus(401);
+    return;
+  }
+  urlDatabase[newUser.id][req.params.id] = req.body.longURL;
+  res.redirect(`/urls`);
 });
 
-//Implement the /logout endpoint so that
-//it clears the username cookie and redirects the user back to the /urls page
-app.post("/logout", (req, res) => {
-  res.clearCookie("user_id");
-  res.redirect("urls")
+// POST for value deletion
+app.post("/urls/:id/delete", (req, res) => {
+  const newUser = req.session.user;
+  if (!newUser) {
+    res.sendStatus(401);
+    return;
+  }
+  delete(urlDatabase[newUser.id][req.params.id]);
+  res.redirect('/urls');
 });
 
-//In order to handle the form submission, add an endpoint to handle a POST to /login in your Express server.
-//Use the endpoint to set the cookie parameter called username to the value submitted in the request body via the form
-app.post("/login", (req, res) => {
-  console.log('In the post login route')
-  let email = req.body.email
-  let password = req.body.password;
-    for(var key in users){
-      if(email === users[key].email && password === users[key].password){
-        res.cookie("user_id", users[key].id);
-        res.redirect("/urls");
-      }
-    }
-    res.redirect("/login");
-});
-
-// /Create a GET /register endpoint,
-// which returns a page that includes a form with an email and password field.
-app.get("/register", (req, res) => {
-  res.render("urls_register");
-});
-
-app.post("/register", (req, res) => {
-
-    var key = generateRandomString();
-    let userInput = { id : key, email : req.body.email , password : req.body.password};
-
-    if (!userInput.email || !userInput.password){
-      // return Error 400
-      res.status(400).send("Error, please register")
-        return;
-      }
-
-    for (let user in users) {
-      if (userInput.email === users[user]["email"]) {
-        res.status(400).send("Error - please use new email")
-        return;
-      }
-    }
-    //pushing email and password into users database
-    users[key]= userInput;
-    //saving user_id as cookie
-    res.cookie("user_id", userInput.id);
-    res.redirect("/urls");
-});
-
-//Create a GET /login endpoint, which returns a new login page (you'll have to create it).
-//Move the entire login form from the _header partial into the new login page, then modify the form
-//to ask for an email and password.
+// GET the login page
 app.get("/login", (req, res) => {
-  console.log('In the get login route')
-  var user = checkUSerCookie(req.cookies);
-  let templateVars = {user : user};
-  res.render("urls_login", templateVars);
+  const newUser = req.session.user;
+  if (newUser) {
+    res.redirect('/urls');
+  } else {
+    res.render("urls_login", {user: newUser});
+  }
 });
 
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
+// GET the register page
+app.get("/register", (req, res) => {
+  const newUser = req.session.user;
+  if (newUser) {
+    res.redirect('/urls');
+  } else {
+    res.render("urls_register", {user: newUser});
+  }
 });
 
+// POST the user_id into cookie for logging in
+app.post("/login", (req, res) => {
+  const {email, password} = req.body;
+  for (let id in users) {
+    if (email === users[id].email) {
+      if (bcrypt.compareSync(password, users[id].password)) {
+        req.session.user = users[id];
+        res.redirect('/urls');
+        return;
+      }
+    }
+  }
+  res.sendStatus(400);
+  return;
+});
+
+// POST the registration form information to user database
+// initialize user data and url database for the new user
+app.post("/register", (req, res) => {
+  const {email, password} = req.body;
+  // check if email already exists
+  for (let id in users){
+    if (email === users[id].email) {
+      res.sendStatus(400);
+      return;
+    }
+  }
+  // do its functionality if user inputted anything other than blank
+  if (email && password) {
+    const user_id = generateRandomString();
+    users[user_id] = {
+      id: user_id,
+      email: email,
+      password: bcrypt.hashSync(password, 14)
+    };
+    urlDatabase[user_id] = {};
+    req.session.user = users[user_id];
+    console.log(req.session.user);
+    res.redirect('/urls');
+  } else {
+    res.sendStatus(400);
+    return;
+  }
+});
+
+// POST the cookie clearance for logging out
+app.post("/logout", (req, res) => {
+  req.session = null;
+  // specs said supposed to redirect to /urls but that doesn't make sense
+  // redirecting to /login makes more sense
+  res.redirect('/login');
+});
+
+// For marking if the server ran
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}!`);
+});
