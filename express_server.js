@@ -1,37 +1,55 @@
-var express = require("express");
-var app = express();
-var PORT = process.env.PORT || 8080;
-
-var cookie = require('cookie');
-var cookieParser = require('cookie-parser');
-app.use(cookieParser());
-
-//The body-parser library will allow us to access POST request parameters,
-//such as req.body.longURL, which we will store in a variable called urlDatabase
-
+const express = require("express");
 const bodyParser = require("body-parser");
-app.use(bodyParser.urlencoded({extended: true}));
+const cookieSession  = require('cookie-session');
+const bcrypt = require('bcrypt');
+// Default port: 8080
+const port = process.env.PORT || 8080;
 
+const app = express();
 app.set("view engine", "ejs");
 
-var urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+// Middlewares
+app.use(bodyParser.urlencoded({extended: true}));
+app.use(cookieSession({
+  secret: 'getschwifty',
+  maxAge: 24 * 60 * 60 * 1000
+}));
+
+// Random string generator for generating short urls
+function generateRandomString() {
+  let text = "";
+  const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  for (let i = 0; i < 6; i++) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  return text;
 };
 
-//used to store and access the users in the app.
-const users = {
-  "userRandomID": {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur"
-  },
- "user2RandomID": {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk"
+// check if logged-in user owns the shortURL
+function userOwns(db, user, shortURL) {
+  let result = false;
+  for (let key in db) {
+    if (db[user.id][shortURL]) {
+      result = true;
+    }
   }
+  return result;
 }
+
+// Initial URL Database
+const urlDatabase = {};
+
+// Initial User Database
+const users = {};
+
+// GET the root directory
+app.get("/", (req, res) => {
+  if (req.session.user) {
+    res.redirect('/urls');
+  } else {
+    res.redirect('/login');
+  }
+});
 
 //creating route for rendering the list or table of the URLs and their shortened forms
 app.get("/urls", (req, res) => {
@@ -140,21 +158,3 @@ app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
-//function for generating a random 6 string
-function generateRandomString() {
-  var text = "";
-  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-   for (var i = 0; i < 6; i++)
-      text += possible.charAt(Math.floor(Math.random() * possible.length));
-   return text;
-};
-
-function checkUSerCookie(cookie){
-  //check if cookie exists
-  if(cookie['user_id']) {
-    let user = users[cookie['user_id']];
-    return user;
-  } else {
-    return {};
-  }
-}
