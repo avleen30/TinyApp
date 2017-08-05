@@ -3,11 +3,17 @@ tinyApp! is a full-stack web application built with Node and Express that allows
 
 ## Screenshots
 ![(https://github.com/avleen30/TinyApp/blob/master/Docs/GetaShortURL.png?raw=true)]
+
 ![https://github.com/avleen30/TinyApp/blob/master/Docs/HomePage.png?raw=true]
+
 ![https://github.com/avleen30/TinyApp/blob/master/Docs/Login.png?raw=true]
+
 ![https://github.com/avleen30/TinyApp/blob/master/Docs/register.png?raw=true]
+
 ![https://github.com/avleen30/TinyApp/blob/master/Docs/shortURL.png?raw=true]
+
 ![https://github.com/avleen30/TinyApp/blob/master/Docs/userHomePage.png?raw=true]
+
 
 
 ## Dependencies
